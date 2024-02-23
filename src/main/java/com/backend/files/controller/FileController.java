@@ -25,7 +25,7 @@ public class FileController {
             directory.mkdirs();
         }
 
-        // Agregar el nombre del directorio dinámico al final de la ruta
+        // Add name of the directory dynamically to the final path
         String filePath = uploadsDir + dir + File.separator + file.getOriginalFilename();
         String fileUploadStatus;
 

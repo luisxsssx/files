@@ -18,15 +18,15 @@ import java.util.Arrays;
 public class FileController {
 
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
-    public String uploadFile(@RequestParam("file") MultipartFile file) {
+    public String uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("dir") String dir) {
         String uploadsDir = "/home/luisxsssx/Documentos/Codigo/server/Upload/";
-        File directory = new File(uploadsDir);
+        File directory = new File(uploadsDir + dir);
         if (!directory.exists()) {
             directory.mkdirs();
         }
 
         // Agregar el nombre del directorio dinámico al final de la ruta
-        String filePath = uploadsDir + File.separator + directory + File.separator + file.getOriginalFilename();
+        String filePath = uploadsDir + dir + File.separator + file.getOriginalFilename();
         String fileUploadStatus;
 
         try {
@@ -83,6 +83,22 @@ public class FileController {
             }
         } else {
             return "Directory already exists";
+        }
+    }
+
+    // Delete dir
+    @RequestMapping(value = "/deleteDir", method = RequestMethod.POST)
+    public String deleteDir(@RequestParam("dir") String dir){
+        String directoryPath = "/home/luisxsssx/Documentos/Codigo/server/Upload/" + dir;
+        File directory = new File(directoryPath);
+        if (directory.exists()) {
+            if (directory.delete()) {
+                return "Directory deleted successfully";
+            } else {
+                return "Failed to delete directory";
+            }
+        } else {
+            return "Directory does not exist";
         }
     }
 }

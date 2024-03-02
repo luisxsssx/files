@@ -10,16 +10,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.*;
 import java.util.Arrays;
 
 @RestController
 public class FileController {
 
+    private String path = "/home/luisxsssx/Pictures/";
+
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
     public String uploadFile(@RequestParam("file") MultipartFile file) {
-        String uploadsDir = "/home/luisxsssx/Documentos/Codigo/server/Upload/";
+        String uploadsDir = path;
         File directory = new File(uploadsDir);
         if (!directory.exists()) {
             directory.mkdirs();
@@ -43,14 +44,14 @@ public class FileController {
 
     @RequestMapping(value = "/getFiles", method = RequestMethod.GET)
     public String[] getFiles() {
-        String folderPath = "/home/luisxsssx/Documentos/Codigo/server/Upload/";
+        String folderPath = path;
         File directory = new File(folderPath);
         return directory.list();
     }
 
     @RequestMapping(value = "/download", method = RequestMethod.GET)
     public ResponseEntity<InputStreamResource> downloadFile(@RequestParam("path") String filename) throws FileNotFoundException {
-        String fileUploadPath = "/home/luisxsssx/Documentos/Codigo/server/Upload/";
+        String fileUploadPath = path;
         String[] filenames = this.getFiles();
         boolean contains = Arrays.asList(filenames).contains(filename);
         if (!contains) {
@@ -73,7 +74,7 @@ public class FileController {
     // Create dir
     @RequestMapping(value = "/createDir", method = RequestMethod.POST)
     public String createDir(@RequestParam("dir") String dir) {
-        String directoryPath = "/home/luisxsssx/Documentos/Codigo/server/Upload/" + dir;
+        String directoryPath = path + dir;
         File directory = new File(directoryPath);
         if (!directory.exists()) {
             if (directory.mkdirs()) {

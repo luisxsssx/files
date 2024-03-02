@@ -16,18 +16,18 @@ import java.util.Arrays;
 @RestController
 public class FileController {
 
-    private String path = "/home/luisxsssx/Pictures/";
+    private String path = "/home/luisxsssx/Pictures/Upload/";
 
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
-    public String uploadFile(@RequestParam("file") MultipartFile file) {
+    public String uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("dir") String dir) {
         String uploadsDir = path;
-        File directory = new File(uploadsDir);
+        File directory = new File(uploadsDir+ File.separator + dir);
         if (!directory.exists()) {
             directory.mkdirs();
         }
 
-        // Agregar el nombre del directorio dinámico al final de la ruta
-        String filePath = uploadsDir + File.separator + directory + File.separator + file.getOriginalFilename();
+        // Construir la ruta completa del archivo utilizando el nombre del directorio proporcionado
+        String filePath = directory.getAbsolutePath() + File.separator + file.getOriginalFilename();
         String fileUploadStatus;
 
         try {
@@ -86,5 +86,5 @@ public class FileController {
             return "Directory already exists";
         }
     }
-    
+
 }

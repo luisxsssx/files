@@ -37,36 +37,35 @@ public class FileController {
         return fileUploadStatus;
     }
 
+    // Download files
     @RequestMapping(value = "/download/{folder}/{filename:.+}", method = RequestMethod.GET)
     public ResponseEntity<InputStreamResource> downloadFile(@PathVariable("folder") String folder,
                                                             @PathVariable("filename") String filename) throws FileNotFoundException {
 
-        // Construir la ruta completa del archivo utilizando la variable path
+        // Construct the full path of the file using the path variable
         String filePath = path + folder + "/" + filename;
 
-        // Crear una instancia del archivo
+        // Create an instance of the file
         File file = new File(filePath);
 
-        // Verificar si el archivo existe
+        // Check if the file exists
         if (!file.exists()) {
             String errorMessage = "File Not Found: " + filename;
         }
 
-        // Crear un InputStreamResource para el archivo
+        // Create an InputStreamResource for the file
         InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
 
-        // Configurar el tipo de contenido y el encabezado de descarga
+        // Set content type and download header
         String contentType = "application/octet-stream";
         String headerValue = "attachment; filename=\"" + file.getName() + "\"";
 
-        // Devolver la respuesta con el archivo
+        // Return response with file
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, headerValue)
                 .body(resource);
     }
-
-
 
     // Get files
     @RequestMapping(value = "/getAllFiles", method = RequestMethod.GET)
@@ -98,5 +97,49 @@ public class FileController {
         } else {
             return "Directory already exists";
         }
+    }
+
+    // Delete files
+    @RequestMapping(value = "/deleteFile", method = RequestMethod.DELETE)
+    public String deleteFile(@RequestParam("filename") String filename,
+                             @RequestParam("dir") String dir) {
+        String filePath = path + dir + File.separator + filename;
+        File file = new File(filePath);
+        if (file.exists()) {
+            if (file.delete()) {
+                return "File deleted successfully";
+            } else {
+                return "Failed to delete file";
+            }
+        } else {
+            return "File does not exist";
+        }
+    }
+
+    // Delete folders
+    @RequestMapping(value = "/deleteDir", method = RequestMethod.DELETE)
+    public String deleteDirectory(@RequestParam("dir") String dir) {
+        String dirPath = path + dir;
+        File directory = new File(dirPath);
+        if (directory.exists()) {
+            if (deleteRecursive(directory)) {
+                return "Directory deleted successfully";
+            } else {
+                return "Failed to delete directory";
+            }
+        } else {
+            return "Directory does not exist";
+        }
+    }
+
+    private boolean deleteRecursive(File file) {
+        if (file.isDirectory()) {
+            for (File subFile : file.listFiles()) {
+                if (!deleteRecursive(subFile)) {
+                    return false;
+                }
+            }
+        }
+        return file.delete();
     }
 }

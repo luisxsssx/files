@@ -1,32 +1,27 @@
 package com.backend.files.controller;
 
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.*;
-import java.util.Arrays;
 
 @RestController
 public class FileController {
 
     private String path = "/home/luisxsssx/Pictures/Upload/";
 
+    // Upload files
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
-    public String uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("dir") String dir) {
+    public String uploadFile(@RequestParam("file") MultipartFile file,
+                             @RequestParam("dir") String dir) {
         String uploadsDir = path;
         File directory = new File(uploadsDir+ File.separator + dir);
         if (!directory.exists()) {
             directory.mkdirs();
         }
 
-        // Construir la ruta completa del archivo utilizando el nombre del directorio proporcionado
+        // Construct the full file path using the given directory name
         String filePath = directory.getAbsolutePath() + File.separator + file.getOriginalFilename();
         String fileUploadStatus;
 
@@ -42,33 +37,51 @@ public class FileController {
         return fileUploadStatus;
     }
 
-    @RequestMapping(value = "/getFiles", method = RequestMethod.GET)
+    @RequestMapping(value = "/download/{folder}/{filename:.+}", method = RequestMethod.GET)
+    public ResponseEntity<InputStreamResource> downloadFile(@PathVariable("folder") String folder,
+                                                            @PathVariable("filename") String filename) throws FileNotFoundException {
+
+        // Construir la ruta completa del archivo utilizando la variable path
+        String filePath = path + folder + "/" + filename;
+
+        // Crear una instancia del archivo
+        File file = new File(filePath);
+
+        // Verificar si el archivo existe
+        if (!file.exists()) {
+            String errorMessage = "File Not Found: " + filename;
+        }
+
+        // Crear un InputStreamResource para el archivo
+        InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
+
+        // Configurar el tipo de contenido y el encabezado de descarga
+        String contentType = "application/octet-stream";
+        String headerValue = "attachment; filename=\"" + file.getName() + "\"";
+
+        // Devolver la respuesta con el archivo
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, headerValue)
+                .body(resource);
+    }
+
+
+
+    // Get files
+    @RequestMapping(value = "/getAllFiles", method = RequestMethod.GET)
     public String[] getFiles() {
         String folderPath = path;
         File directory = new File(folderPath);
         return directory.list();
     }
 
-    @RequestMapping(value = "/download", method = RequestMethod.GET)
-    public ResponseEntity<InputStreamResource> downloadFile(@RequestParam("path") String filename) throws FileNotFoundException {
-        String fileUploadPath = path;
-        String[] filenames = this.getFiles();
-        boolean contains = Arrays.asList(filenames).contains(filename);
-        if (!contains) {
-            return new ResponseEntity("File Not Found", HttpStatus.NOT_FOUND);
-        }
-
-        String filePath = fileUploadPath + File.separator + filename;
-        File file = new File(filePath);
-        InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
-        HttpHeaders header = new HttpHeaders();
-        String contentType = "application/octet-stream";
-        String headerValue = "attachment; filename=\"" + resource.getFilename() + "\"";
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION, headerValue)
-                .body(resource);
+    // Get files in a specific directory
+    @RequestMapping(value = "/getFiles", method = RequestMethod.GET)
+    public String[] getFiles(@RequestParam("dir") String dir) {
+        String folderPath = path + File.separator + dir;
+        File directory = new File(folderPath);
+        return directory.list();
     }
 
     // Create dir
@@ -86,5 +99,4 @@ public class FileController {
             return "Directory already exists";
         }
     }
-
 }

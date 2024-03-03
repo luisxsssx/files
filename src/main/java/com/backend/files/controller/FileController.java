@@ -69,18 +69,34 @@ public class FileController {
 
     // Get files
     @RequestMapping(value = "/getAllFiles", method = RequestMethod.GET)
-    public String[] getFiles() {
-        String folderPath = path;
-        File directory = new File(folderPath);
-        return directory.list();
+    public ResponseEntity<String[]> getFiles() {
+        try {
+            String folderPath = path;
+            File directory = new File(folderPath);
+            String[] files = directory.list();
+            if (files == null) {
+                throw new FileNotFoundException("File not found or empty");
+            }
+            return ResponseEntity.ok(files);
+        } catch (FileNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new String[]{"File not found or empty"});
+        }
     }
 
     // Get files in a specific directory
     @RequestMapping(value = "/getFiles", method = RequestMethod.GET)
-    public String[] getFiles(@RequestParam("dir") String dir) {
-        String folderPath = path + File.separator + dir;
-        File directory = new File(folderPath);
-        return directory.list();
+    public ResponseEntity<String[]> getFiles(@RequestParam("dir") String dir) {
+        try {
+            String folderPath = path + File.separator + dir;
+            File directory = new File(folderPath);
+            String[] files = directory.list();
+            if (files == null) {
+                throw new FileNotFoundException("Directory not found or empty");
+            }
+            return ResponseEntity.ok(files);
+        } catch (FileNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new String[]{"Directory not found or empty"});
+        }
     }
 
     // Create dir

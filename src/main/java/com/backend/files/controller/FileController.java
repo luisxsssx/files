@@ -4,19 +4,35 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.backend.files.services.FolderDeletionService;
+import com.backend.files.services.FolderService;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 public class FileController {
 
-    private String path = "/home/luisxsssx/Pictures/Upload/";
+    private String path = "/home/luisxsssx/Documents/Code/files/Upload/";
+
+    private final FolderDeletionService folderDeletionService;
+
+    private final FolderService folderService;
+
+    public FileController(FolderService folderService, FolderDeletionService folderDeletionService) {
+        this.folderService = folderService;
+        this.folderDeletionService = folderDeletionService;
+    }
 
     // Upload files
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
     public String uploadFile(@RequestParam("file") MultipartFile file,
-                             @RequestParam("dir") String dir) {
+            @RequestParam("dir") String dir) {
         String uploadsDir = path;
-        File directory = new File(uploadsDir+ File.separator + dir);
+        File directory = new File(uploadsDir + File.separator + dir);
         if (!directory.exists()) {
             directory.mkdirs();
         }
@@ -40,7 +56,7 @@ public class FileController {
     // Download files
     @RequestMapping(value = "/download/{folder}/{filename:.+}", method = RequestMethod.GET)
     public ResponseEntity<InputStreamResource> downloadFile(@PathVariable("folder") String folder,
-                                                            @PathVariable("filename") String filename) throws FileNotFoundException {
+            @PathVariable("filename") String filename) throws FileNotFoundException {
 
         // Construct the full path of the file using the path variable
         String filePath = path + folder + "/" + filename;
@@ -79,7 +95,7 @@ public class FileController {
             }
             return ResponseEntity.ok(files);
         } catch (FileNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new String[]{"File not found or empty"});
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new String[] { "File not found or empty" });
         }
     }
 
@@ -95,30 +111,37 @@ public class FileController {
             }
             return ResponseEntity.ok(files);
         } catch (FileNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new String[]{"Directory not found or empty"});
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new String[] { "Directory not found or empty" });
         }
     }
 
     // Create dir
     @RequestMapping(value = "/createDir", method = RequestMethod.POST)
-    public String createDir(@RequestParam("dir") String dir) {
-        String directoryPath = path + dir;
-        File directory = new File(directoryPath);
-        if (!directory.exists()) {
-            if (directory.mkdirs()) {
-                return "Directory created successfully";
-            } else {
-                return "Failed to create directory";
-            }
+    public String createDir(@RequestParam("parentDir") String parentDir,
+            @RequestParam("newDirName") String newDirName) {
+        Path directoryPath;
+
+        // Verifica si se especificó una carpeta padre
+        if (parentDir != null && !parentDir.isEmpty()) {
+            directoryPath = Paths.get(path, parentDir, newDirName);
         } else {
-            return "Directory already exists";
+            directoryPath = Paths.get(path, newDirName);
+        }
+
+        try {
+            // Intenta crear el directorio
+            Files.createDirectories(directoryPath);
+            return "Directory created succesfully";
+        } catch (Exception e) {
+            // Si hay un error, devuelve un mensaje de error
+            return "Failed to create directory: " + e.getMessage();
         }
     }
 
     // Delete files
     @RequestMapping(value = "/deleteFile", method = RequestMethod.DELETE)
     public String deleteFile(@RequestParam("filename") String filename,
-                             @RequestParam("dir") String dir) {
+            @RequestParam("dir") String dir) {
         String filePath = path + dir + File.separator + filename;
         File file = new File(filePath);
         if (file.exists()) {
@@ -132,30 +155,42 @@ public class FileController {
         }
     }
 
-    // Delete folders
-    @RequestMapping(value = "/deleteDir", method = RequestMethod.DELETE)
-    public String deleteDirectory(@RequestParam("dir") String dir) {
-        String dirPath = path + dir;
-        File directory = new File(dirPath);
-        if (directory.exists()) {
-            if (deleteRecursive(directory)) {
-                return "Directory deleted successfully";
-            } else {
-                return "Failed to delete directory";
+    @RequestMapping(value = "/getFolders", method = RequestMethod.GET)
+    public ResponseEntity<Map<String, String>> getFolders(
+            @RequestParam(value = "dir", required = false) String dir) {
+        try {
+            String folderPath = path;
+            if (dir != null && !dir.isEmpty()) {
+                folderPath += File.separator + dir;
             }
-        } else {
-            return "Directory does not exist";
+            File directory = new File(folderPath);
+            Map<String, String> folders = new HashMap<>();
+            if (directory.exists() && directory.isDirectory()) {
+                File[] files = directory.listFiles();
+                if (files != null) {
+                    for (File file : files) {
+                        if (file.isDirectory()) {
+                            folders.put(file.getName(), file.getName());
+                        }
+                    }
+                }
+                return ResponseEntity.ok(folders);
+            } else {
+                throw new FileNotFoundException("Directory not found or empty");
+            }
+        } catch (FileNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new HashMap<String, String>() {
+                {
+                    put("error", "Directory not found or empty");
+                }
+            });
         }
     }
 
-    private boolean deleteRecursive(File file) {
-        if (file.isDirectory()) {
-            for (File subFile : file.listFiles()) {
-                if (!deleteRecursive(subFile)) {
-                    return false;
-                }
-            }
-        }
-        return file.delete();
+    // Delete folders
+    @RequestMapping(value = "/deletDir", method = RequestMethod.DELETE)
+    public String deleteDirectory(@RequestParam("dir") String dir) {
+        String dirPath = path + dir;
+        return folderDeletionService.deleteDirectory(dirPath);
     }
 }

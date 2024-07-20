@@ -12,15 +12,19 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 @Controller
-@RequestMapping("/files")
+@RequestMapping("/home")
 public class FileController {
 
     private String folderPath = "/home/luisxsssx/Documents/Code/spring/files/documents";
 
-    // Create folder
-    @PostMapping("/folder")
+    ///////////////////////////////////
+    //      Folders Section          //
+    ///////////////////////////////////
+
+    @PostMapping("/folder/create")
     public ResponseEntity<String> createFolder(@RequestParam("folderName") String folderName) {
         String baseDirPath = folderPath;
         String folderPath = Paths.get(baseDirPath, folderName).toString();
@@ -35,7 +39,8 @@ public class FileController {
 
     // Create folder whitin another folder
     @PostMapping("/folders")
-    public ResponseEntity<String> createAnotherFolder(@RequestParam("folderName") String folderName, @RequestParam("parentFolder") String parentFolder) {
+    public ResponseEntity<String> createAnotherFolder(@RequestParam("folderName") String folderName,
+                                                      @RequestParam("parentFolder") String parentFolder) {
         String baseDirPath = folderPath;
         String folderPath = Paths.get(baseDirPath, parentFolder, folderName).toString();
 
@@ -47,7 +52,40 @@ public class FileController {
         }
     }
 
-    @RequestMapping(value = "uploadFiles", method = RequestMethod.POST)
+    @RequestMapping(value = "/folder", method = RequestMethod.GET)
+    public ResponseEntity<String[]> folderContent(@RequestParam(required = false) String name) {
+
+        File folder = new File(folderPath);
+        File[] folderContent = folder.listFiles();
+
+        if (folderContent != null) {
+
+            String[] filteredContent = folderContent.length > 0 ?
+                    Arrays.stream(folderContent)
+                            .filter(file -> name == null || file.getName().contains(name))
+                            .map(File::getName)
+                            .toArray(String[]::new)
+                    : new String[0];
+
+            return ResponseEntity.ok(filteredContent);
+        } else {
+
+            return ResponseEntity.ok(new String[0]);
+        }
+    }
+
+    @RequestMapping(value = "/content", method = RequestMethod.GET)
+    public ResponseEntity<String[]> getContent() {
+        File folder = new File(folderPath);
+        String[] files = folder.list();
+        return ResponseEntity.ok(files);
+    }
+
+    ///////////////////////////////////
+    //      Files Section          //
+    ///////////////////////////////////
+
+    @RequestMapping(value = "/uploadFiles", method = RequestMethod.POST)
     public String uploadFile(@RequestParam("file")MultipartFile file) {
         String path = folderPath + File.separator + file.getOriginalFilename();
         String fileUploadStatus;
@@ -67,10 +105,4 @@ public class FileController {
         return fileUploadStatus;
     }
 
-    @RequestMapping(value = "/getFiles", method = RequestMethod.GET)
-    public ResponseEntity<String[]> getFiles() {
-        File folder = new File(folderPath);
-        String[] files = folder.list();
-        return ResponseEntity.ok(files);
-    }
 }

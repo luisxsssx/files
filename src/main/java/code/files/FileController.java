@@ -11,6 +11,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Objects;
 
 @Controller
 @RequestMapping("/home")
@@ -22,59 +23,48 @@ public class FileController {
     //      Folders Section          //
     ///////////////////////////////////
 
-    @PostMapping("/create")
-    public ResponseEntity<String> createFolder(@RequestParam("folderName") String folderName) {
-        String baseDirPath = baseDir;
-        String folderPath = Paths.get(baseDirPath, folderName).toString();
-
-        File folder = new File(folderPath);
-        if (folder.mkdirs()) {
-            return ResponseEntity.ok("Succesfully created folder");
-        } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating folder");
-        }
-    }
-    
-    @RequestMapping(value = "/folder", method = RequestMethod.GET)
-    public ResponseEntity<String[]> folderContent(@RequestParam String path) {
-        String fullPath = path != null ? Paths.get(baseDir, path).toString() : baseDir;
-        File folder = new File(fullPath);
-
-        File[] folderContent = folder.listFiles();
-
-        if(folderContent != null) {
-            String[] content = folderContent.length > 0 ?
-                    Arrays.stream(folderContent)
-                            .map(File::getName)
-                            .toArray(String[]::new)
-                    : new String[0];
-            return ResponseEntity.ok(content);
-        } else {
-            return ResponseEntity.ok(new String[0]);
-        }
-    }
-
-    // Create folder whitin another folder
+    // Create folders
     @PostMapping("/folder/create")
     public ResponseEntity<String> createAnotherFolder(@RequestParam("folderName") String folderName,
-                                                      @RequestParam("parentFolder") String parentFolder) {
-        String baseDirPath = baseDir;
-        String folderPath = Paths.get(baseDirPath, parentFolder, folderName).toString();
+                                                      @RequestParam(value = "parentFolder", required = false) String parentFolder) {
+        String folderPath = (parentFolder == null || parentFolder.isEmpty())
+                ? Paths.get(baseDir, folderName).toString()
+                : Paths.get(baseDir, parentFolder, folderName).toString();
 
         File folder = new File(folderPath);
-        if(folder.mkdir()) {
+        if (folder.mkdir()) {
             return ResponseEntity.ok("Successfully created folder");
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating folder");
         }
     }
 
+    // Enter Folder
+    @RequestMapping(value = "/folder", method = RequestMethod.GET)
+    public ResponseEntity<Object[]> folderContent(@RequestParam (value = "path") String path) {
+        String fullPath = path != null ? Paths.get(baseDir, path).toString() : baseDir;
+        File folder = new File(fullPath);
 
-    @RequestMapping(value = "/content", method = RequestMethod.GET)
-    public ResponseEntity<String[]> getContent() {
-        File folder = new File(baseDir);
-        String[] files = folder.list();
-        return ResponseEntity.ok(files);
+        File[] folderContent = folder.listFiles();
+
+        if (folderContent != null) {
+            Object[] content = folderContent.length > 0 ?
+                    Arrays.stream(folderContent)
+                            .map(file -> {
+                                if (file.isDirectory()) {
+                                    return file.getName() + " (Directory)";
+                                } else if (file.isFile()) {
+                                    return file.getName() + " (File)";
+                                } else {
+                                    return file.getName() + " (Unknown)";
+                                }
+                            })
+                            .toArray(Object[]::new)
+                    : new Object[0];
+            return ResponseEntity.ok(content);
+        } else {
+            return ResponseEntity.ok(new Object[0]);
+        }
     }
 
     ///////////////////////////////////
@@ -108,5 +98,27 @@ public class FileController {
         }
     }
 
+    // Rename a file or folder
+    @PostMapping("/rename")
+    public ResponseEntity<String> rename(@RequestParam("currentName") String currentName,
+                                         @RequestParam("newName") String newName,
+                                         @RequestParam(value = "folderName", required = false) String folderName) {
+        String folderPath = (folderName == null || folderName.isEmpty()) ? baseDir : Paths.get(baseDir, folderName).toString();
+        File folder = new File(folderPath);
+        if (!folder.exists()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Folder does not exist");
+        }
 
+        File currentFileOrFolder = new File(Paths.get(folderPath, currentName).toString());
+        if (!currentFileOrFolder.exists()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("File or folder does not exist");
+        }
+
+        File newFileOrFolder = new File(Paths.get(folderPath, newName).toString());
+        if (currentFileOrFolder.renameTo(newFileOrFolder)) {
+            return ResponseEntity.ok("File or folder renamed successfully");
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error renaming file or folder");
+        }
+    }
 }

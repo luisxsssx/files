@@ -11,7 +11,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Objects;
 
 @Controller
 @RequestMapping("/home")
@@ -120,5 +119,38 @@ public class FileController {
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error renaming file or folder");
         }
+    }
+
+    // Delete file/folder
+    @DeleteMapping("/delete")
+    public ResponseEntity<String> delete(@RequestParam("path") String path){
+        String targetPath = Paths.get(baseDir, path).toString();
+        File targetFileFolder = new File(targetPath);
+
+        if(!targetFileFolder.exists()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("File or folder not found");
+        }
+
+        if(deleteRecursively(targetFileFolder)) {
+            return ResponseEntity.ok("Succesfully deleted");
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting file or folder");
+        }
+
+    }
+
+    // Helper method to delete files and directories recursively
+    private boolean deleteRecursively(File fileOrFolder) {
+        if(fileOrFolder.isDirectory()) {
+            File[] contents = fileOrFolder.listFiles();
+            if (contents != null) {
+                for(File file : contents) {
+                    if(!deleteRecursively(file)) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return fileOrFolder.delete();
     }
 }

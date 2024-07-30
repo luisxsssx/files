@@ -1,6 +1,11 @@
 package code.files;
 
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.ResourceLoader;
+import code.files.service.FileService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -9,14 +14,25 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Arrays;
+
 
 @Controller
 @RequestMapping("/home")
 public class FileController {
 
+    @Autowired
+    private final FileService fileService;
+
     private String baseDir = "/home/luisxsssx/Documents/Code/documents";
+    private final ResourceLoader resourceLoader;
+
+    public FileController(FileService fileService, ResourceLoader resourceLoader) {
+        this.fileService = fileService;
+        this.resourceLoader = resourceLoader;
+    }
 
     ///////////////////////////////////
     //      Folders Section          //
@@ -131,7 +147,7 @@ public class FileController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("File or folder not found");
         }
 
-        if(deleteRecursively(targetFileFolder)) {
+        if(fileService.deleteRecursively(targetFileFolder)) {
             return ResponseEntity.ok("Succesfully deleted");
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting file or folder");
@@ -139,18 +155,21 @@ public class FileController {
 
     }
 
-    // Helper method to delete files and directories recursively
-    private boolean deleteRecursively(File fileOrFolder) {
-        if(fileOrFolder.isDirectory()) {
-            File[] contents = fileOrFolder.listFiles();
-            if (contents != null) {
-                for(File file : contents) {
-                    if(!deleteRecursively(file)) {
-                        return false;
-                    }
-                }
-            }
+    /*@GetMapping("/get-image-dynamic-type")
+    @ResponseBody
+    public ResponseEntity<InputStreamResource> getImageDynamicType(@RequestParam("jpg") boolean jpg) {
+        MediaType contentType = jpg ? MediaType.IMAGE_JPEG : MediaType.IMAGE_PNG;
+        InputStream in = jpg
+                ? getClass().getResourceAsStream("/images/wallpaperbetter.com_1368x668.jpg")
+                : getClass().getResourceAsStream("/images/wallpaperbetter.com_1368x668.png");
+
+        if (in == null) {
+            return ResponseEntity.notFound().build();
         }
-        return fileOrFolder.delete();
-    }
+
+        return ResponseEntity.ok()
+                .contentType(contentType)
+                .body(new InputStreamResource(in));
+    }*/
+
 }

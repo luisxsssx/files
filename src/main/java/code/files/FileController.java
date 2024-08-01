@@ -67,9 +67,9 @@ public class FileController {
                     Arrays.stream(folderContent)
                             .map(file -> {
                                 if (file.isDirectory()) {
-                                    return file.getName() + " (Directory)";
+                                    return file.getName();
                                 } else if (file.isFile()) {
-                                    return file.getName() + " (File)";
+                                    return file.getName();
                                 } else {
                                     return file.getName() + " (Unknown)";
                                 }
@@ -171,5 +171,7 @@ public class FileController {
                 .contentType(contentType)
                 .body(new InputStreamResource(in));
     }*/
+
+    
 
 }

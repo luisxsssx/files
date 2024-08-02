@@ -1,11 +1,9 @@
 package code.files;
 
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.ResourceLoader;
 import code.files.service.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -14,10 +12,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Paths;
-import java.util.Arrays;
-
+import java.util.List;
 
 @Controller
 @RequestMapping("/home")
@@ -56,15 +52,21 @@ public class FileController {
 
     // Enter Folder
     @RequestMapping(value = "/folder", method = RequestMethod.GET)
-    public ResponseEntity<Object[]> folderContent(@RequestParam (value = "path") String path) {
+    public ResponseEntity<Object[]> folderContent(
+            @RequestParam(value = "path") String path,
+            @RequestParam(value = "type", required = false) String type) {
+
         String fullPath = path != null ? Paths.get(baseDir, path).toString() : baseDir;
         File folder = new File(fullPath);
 
         File[] folderContent = folder.listFiles();
 
         if (folderContent != null) {
-            Object[] content = folderContent.length > 0 ?
-                    Arrays.stream(folderContent)
+            List<File> filteredFiles = fileService.filterFilesAndFolders(folderContent, type);
+
+            Object[] content = filteredFiles.isEmpty() ?
+                    new Object[0] :
+                    filteredFiles.stream()
                             .map(file -> {
                                 if (file.isDirectory()) {
                                     return file.getName();
@@ -74,8 +76,8 @@ public class FileController {
                                     return file.getName() + " (Unknown)";
                                 }
                             })
-                            .toArray(Object[]::new)
-                    : new Object[0];
+                            .toArray(Object[]::new);
+
             return ResponseEntity.ok(content);
         } else {
             return ResponseEntity.ok(new Object[0]);
@@ -154,24 +156,5 @@ public class FileController {
         }
 
     }
-
-    /*@GetMapping("/get-image-dynamic-type")
-    @ResponseBody
-    public ResponseEntity<InputStreamResource> getImageDynamicType(@RequestParam("jpg") boolean jpg) {
-        MediaType contentType = jpg ? MediaType.IMAGE_JPEG : MediaType.IMAGE_PNG;
-        InputStream in = jpg
-                ? getClass().getResourceAsStream("/images/wallpaperbetter.com_1368x668.jpg")
-                : getClass().getResourceAsStream("/images/wallpaperbetter.com_1368x668.png");
-
-        if (in == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok()
-                .contentType(contentType)
-                .body(new InputStreamResource(in));
-    }*/
-
-    
 
 }

@@ -3,6 +3,8 @@ package code.files.service;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class FileService {
@@ -20,5 +22,30 @@ public class FileService {
             }
         }
         return fileOrFolder.delete();
+    }
+
+    // Filter files and folders
+    public List<File> filterFilesAndFolders(File[] files, String type) {
+        List<File> result = new ArrayList<>();
+        if (files != null) {
+            for (File file : files) {
+                switch (type != null ? type.toLowerCase() : "") {
+                    case "folder":
+                        if (file.isDirectory()) {
+                            result.add(file);
+                        }
+                        break;
+                    case "file":
+                        if (file.isFile()) {
+                            result.add(file);
+                        }
+                        break;
+                    default:
+                        result.add(file);
+                        break;
+                }
+            }
+        }
+        return result;
     }
 }

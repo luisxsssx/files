@@ -14,7 +14,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 
 @Controller
@@ -91,7 +90,7 @@ public class FileController {
     ///////////////////////////////////
 
     // Upload file to a specific folder
-    @PostMapping("/uploadToFolder")
+    @PostMapping("/uploadFile")
     public ResponseEntity<String> uploadFileToFolder(@RequestParam("file") MultipartFile file,
                                                      @RequestParam(value = "folderName", required = false) String folderName) {
         String folderPath;

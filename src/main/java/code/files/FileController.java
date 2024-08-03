@@ -1,18 +1,20 @@
 package code.files;
 
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.ResourceLoader;
 import code.files.service.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 
 @Controller
@@ -157,4 +159,28 @@ public class FileController {
 
     }
 
+    // Download file
+    @GetMapping("/download")
+    public ResponseEntity<InputStreamResource> downloadFile(
+            @RequestParam(value = "path") String path,
+            @RequestParam(value = "type", required = false) String type) throws FileNotFoundException {
+
+        String filePath = Paths.get(baseDir, path).toString();
+        File file = new File(filePath);
+
+        if (!file.exists()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
+
+        HttpHeaders headers = new HttpHeaders();
+        String contentType = "application/octet-stream";
+        String headerValue = "attachment; filename=\"" + resource.getFilename() + "\"";
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, headerValue)
+                .body(resource);
+    }
 }

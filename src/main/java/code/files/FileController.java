@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
@@ -51,37 +52,12 @@ public class FileController {
     }
 
     // Enter Folder
-    @RequestMapping(value = "/folder", method = RequestMethod.GET)
+    @GetMapping("/folder")
     public ResponseEntity<Object[]> folderContent(
             @RequestParam(value = "path") String path,
             @RequestParam(value = "type", required = false) String type) {
-
-        String fullPath = path != null ? Paths.get(baseDir, path).toString() : baseDir;
-        File folder = new File(fullPath);
-
-        File[] folderContent = folder.listFiles();
-
-        if (folderContent != null) {
-            List<File> filteredFiles = fileService.filterFilesAndFolders(folderContent, type);
-
-            Object[] content = filteredFiles.isEmpty() ?
-                    new Object[0] :
-                    filteredFiles.stream()
-                            .map(file -> {
-                                if (file.isDirectory()) {
-                                    return file.getName();
-                                } else if (file.isFile()) {
-                                    return file.getName();
-                                } else {
-                                    return file.getName() + " (Unknown)";
-                                }
-                            })
-                            .toArray(Object[]::new);
-
-            return ResponseEntity.ok(content);
-        } else {
-            return ResponseEntity.ok(new Object[0]);
-        }
+        Object[] content = fileService.getFolderContent(baseDir, path, type);
+        return ResponseEntity.ok(content);
     }
 
     ///////////////////////////////////
@@ -89,7 +65,7 @@ public class FileController {
     ///////////////////////////////////
 
     // Upload file to a specific folder
-    @PostMapping("/uploadToFolder")
+    @PostMapping("/upload")
     public ResponseEntity<String> uploadFileToFolder(@RequestParam("file") MultipartFile file,
                                                      @RequestParam(value = "folderName", required = false) String folderName) {
         String folderPath;
@@ -105,10 +81,12 @@ public class FileController {
 
         String filePath = Paths.get(folderPath, file.getOriginalFilename()).toString();
         try {
+            // Save the file to the file system
             FileOutputStream fout = new FileOutputStream(filePath);
             fout.write(file.getBytes());
             fout.close();
-            return ResponseEntity.ok("File uploaded succesfully to folder " + folderName);
+
+            return ResponseEntity.ok("File uploaded succesfully to:" + folderName);
         } catch (IOException e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in uploading file: " + e.getMessage());

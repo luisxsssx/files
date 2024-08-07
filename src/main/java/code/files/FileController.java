@@ -1,10 +1,7 @@
 package code.files;
 
-<<<<<<< HEAD
 import org.springframework.core.io.InputStreamResource;
-=======
 import code.files.model.fileModel;
->>>>>>> proof
 import org.springframework.core.io.ResourceLoader;
 import code.files.service.FileService;
 import org.springframework.beans.factory.annotation.Autowired;

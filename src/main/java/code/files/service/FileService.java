@@ -1,10 +1,12 @@
 package code.files.service;
 
+import code.files.model.fileModel;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -30,7 +32,7 @@ public class FileService {
         return fileOrFolder.delete();
     }
 
-    public Object[] getFolderContent(String baseDir, String path, String type) {
+    public List<fileModel> getFolderContent(String baseDir, String path, String type) {
         String fullPath = path != null ? Paths.get(baseDir, path).toString() : baseDir;
         File folder = new File(fullPath);
 
@@ -39,25 +41,22 @@ public class FileService {
             List<File> filteredFiles = filterFilesAndFolders(folderContent, type);
 
             return filteredFiles.isEmpty() ?
-                    new Object[0] :
+                    List.of() :
                     filteredFiles.stream()
                             .map(file -> {
-                                if (file.isDirectory()) {
-                                    long lastModified = file.lastModified();
-                                    Date mod = new Date(lastModified);
-                                    return "Name: " + file.getName() + ", " + "Modification date: " + mod;
-                                } else {
-                                    long fileKB = file.length();
-                                    return file.getName() + " " + conversion(fileKB) + " KB";
-                                }
+                                String size = file.isDirectory() ? "" : conversion(file.length()) + " KB";
+                                long lastModifiec = file.lastModified();
+                                Date mod = new Date(lastModifiec);
+                                SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy");
+                                String formattedDate = sdf.format(mod);
+                                return new fileModel(file.getName(), size, formattedDate);
                             })
-                            .toArray(Object[]::new);
+                            .collect(Collectors.toList());
         } else {
-            return new Object[0];
+            return List.of();
         }
     }
 
-    // Filter files and folders
     public List<File> filterFilesAndFolders(File[] files, String type) {
         if (type == null || type.isEmpty()) {
             return Arrays.asList(files);

@@ -1,6 +1,10 @@
 package code.files;
 
+<<<<<<< HEAD
 import org.springframework.core.io.InputStreamResource;
+=======
+import code.files.model.fileModel;
+>>>>>>> proof
 import org.springframework.core.io.ResourceLoader;
 import code.files.service.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
@@ -54,10 +57,10 @@ public class FileController {
 
     // Enter Folder
     @GetMapping("/folder")
-    public ResponseEntity<Object[]> folderContent(
+    public ResponseEntity<List<fileModel>> folderContent(
             @RequestParam(value = "path") String path,
             @RequestParam(value = "type", required = false) String type) {
-        Object[] content = fileService.getFolderContent(baseDir, path, type);
+        List<fileModel> content = fileService.getFolderContent(baseDir, path, type);
         return ResponseEntity.ok(content);
     }
 

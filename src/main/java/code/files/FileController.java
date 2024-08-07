@@ -66,11 +66,8 @@ public class FileController {
     ///////////////////////////////////
 
     // Upload file to a specific folder
-<<<<<<< HEAD
-    @PostMapping("/uploadFile")
-=======
+
     @PostMapping("/upload")
->>>>>>> proof
     public ResponseEntity<String> uploadFileToFolder(@RequestParam("file") MultipartFile file,
                                                      @RequestParam(value = "folderName", required = false) String folderName) {
         String folderPath;

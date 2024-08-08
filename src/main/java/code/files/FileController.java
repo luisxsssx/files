@@ -1,10 +1,8 @@
 package code.files;
 
-<<<<<<< HEAD
+
 import org.springframework.core.io.InputStreamResource;
-=======
 import code.files.model.fileModel;
->>>>>>> proof
 import org.springframework.core.io.ResourceLoader;
 import code.files.service.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,10 +55,10 @@ public class FileController {
 
     // Enter Folder
     @GetMapping("/folder")
-    public ResponseEntity<List<fileModel>> folderContent(
+    public ResponseEntity<List<Object>> folderContent(
             @RequestParam(value = "path") String path,
             @RequestParam(value = "type", required = false) String type) {
-        List<fileModel> content = fileService.getFolderContent(baseDir, path, type);
+        List<Object> content = fileService.getFolderContent(baseDir, path, type);
         return ResponseEntity.ok(content);
     }
 

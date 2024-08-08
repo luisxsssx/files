@@ -1,6 +1,7 @@
 package code.files.service;
 
 import code.files.model.fileModel;
+import code.files.model.folderModel;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -10,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,7 +34,7 @@ public class FileService {
         return fileOrFolder.delete();
     }
 
-    public List<fileModel> getFolderContent(String baseDir, String path, String type) {
+    public List<Object> getFolderContent(String baseDir, String path, String type) {
         String fullPath = path != null ? Paths.get(baseDir, path).toString() : baseDir;
         File folder = new File(fullPath);
 
@@ -44,12 +46,26 @@ public class FileService {
                     List.of() :
                     filteredFiles.stream()
                             .map(file -> {
-                                String size = file.isDirectory() ? "" : conversion(file.length()) + " KB";
-                                long lastModifiec = file.lastModified();
-                                Date mod = new Date(lastModifiec);
+                                /*String size = file.isDirectory() ? "" : conversion(file.length()) + " KB";
+                                long lastModified= file.lastModified();
+                                Date mod = new Date(lastModified);
                                 SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy");
                                 String formattedDate = sdf.format(mod);
-                                return new fileModel(file.getName(), size, formattedDate);
+                                return new fileModel(file.getName(), size, formattedDate);*/
+                                if(file.isDirectory()) {
+                                    long lastModified= file.lastModified();
+                                    Date mod = new Date(lastModified);
+                                    SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy");
+                                    String formattedDate = sdf.format(mod);
+                                    return new folderModel(file.getName(), formattedDate);
+                                } else {
+                                    long lastModified= file.lastModified();
+                                    Date mod = new Date(lastModified);
+                                    SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy");
+                                    String formattedDate = sdf.format(mod);
+                                    String size = file.isDirectory() ? "" : conversion(file.length()) + " MB";
+                                    return new fileModel(file.getName(), size, formattedDate);
+                                }
                             })
                             .collect(Collectors.toList());
         } else {

@@ -1,5 +1,6 @@
 package code.files;
 
+
 import org.springframework.core.io.InputStreamResource;
 import code.files.model.fileModel;
 import org.springframework.core.io.ResourceLoader;
@@ -54,10 +55,10 @@ public class FileController {
 
     // Enter Folder
     @GetMapping("/folder")
-    public ResponseEntity<List<fileModel>> folderContent(
+    public ResponseEntity<List<Object>> folderContent(
             @RequestParam(value = "path") String path,
             @RequestParam(value = "type", required = false) String type) {
-        List<fileModel> content = fileService.getFolderContent(baseDir, path, type);
+        List<Object> content = fileService.getFolderContent(baseDir, path, type);
         return ResponseEntity.ok(content);
     }
 

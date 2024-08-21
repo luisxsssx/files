@@ -5,13 +5,14 @@ import code.files.model.folderModel;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,12 +21,12 @@ public class FileService {
     private static final DecimalFormat df = new DecimalFormat("#.##");
 
     // Helper method to delete files and directories recursively
-    public boolean deleteRecursively(File fileOrFolder) {
+    public boolean deleted(File fileOrFolder) {
         if(fileOrFolder.isDirectory()) {
             File[] contents = fileOrFolder.listFiles();
             if (contents != null) {
                 for(File file : contents) {
-                    if(!deleteRecursively(file)) {
+                    if(!deleted(file)) {
                         return false;
                     }
                 }
@@ -34,6 +35,23 @@ public class FileService {
         return fileOrFolder.delete();
     }
 
+    // Move file to trash
+    public boolean moveToTrash(File fileOrFolder) {
+        if(fileOrFolder.isDirectory()) {
+            File[] contents = fileOrFolder.listFiles();
+            if (contents != null) {
+                for(File file : contents) {
+                    if(!deleted(file)) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return fileOrFolder.delete();
+    }
+
+
     public List<Object> getFolderContent(String baseDir, String path, String type) {
         String fullPath = path != null ? Paths.get(baseDir, path).toString() : baseDir;
         File folder = new File(fullPath);
@@ -41,17 +59,11 @@ public class FileService {
         File[] folderContent = folder.listFiles();
         if (folderContent != null) {
             List<File> filteredFiles = filterFilesAndFolders(folderContent, type);
-
             return filteredFiles.isEmpty() ?
                     List.of() :
                     filteredFiles.stream()
                             .map(file -> {
-                                /*String size = file.isDirectory() ? "" : conversion(file.length()) + " KB";
-                                long lastModified= file.lastModified();
-                                Date mod = new Date(lastModified);
-                                SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy");
-                                String formattedDate = sdf.format(mod);
-                                return new fileModel(file.getName(), size, formattedDate);*/
+
                                 if(file.isDirectory()) {
                                     long lastModified= file.lastModified();
                                     Date mod = new Date(lastModified);
@@ -63,7 +75,7 @@ public class FileService {
                                     Date mod = new Date(lastModified);
                                     SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy");
                                     String formattedDate = sdf.format(mod);
-                                    String size = file.isDirectory() ? "" : conversion(file.length()) + " MB";
+                                    String size = file.isDirectory() ? "" : conversion(file.length()) + " KB";
                                     return new fileModel(file.getName(), size, formattedDate);
                                 }
                             })
@@ -88,4 +100,5 @@ public class FileService {
         double kilobytes = bytes / 1024.0;
         return df.format(kilobytes);
     }
+
 }

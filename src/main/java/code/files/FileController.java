@@ -1,8 +1,6 @@
 package code.files;
 
-
 import org.springframework.core.io.InputStreamResource;
-import code.files.model.fileModel;
 import org.springframework.core.io.ResourceLoader;
 import code.files.service.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +13,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 @Controller
@@ -25,7 +26,8 @@ public class FileController {
     @Autowired
     private final FileService fileService;
 
-    private String baseDir = "/home/luisxsssx/Documents/Code/documents";
+    private String baseDir = "/home/luisxsssx/Documents/Code/documents/root/";
+    private String binDir = "/home/luisxsssx/Documents/Code/documents/bin/";
     private final ResourceLoader resourceLoader;
 
     public FileController(FileService fileService, ResourceLoader resourceLoader) {
@@ -67,7 +69,6 @@ public class FileController {
     ///////////////////////////////////
 
     // Upload file to a specific folder
-
     @PostMapping("/upload")
     public ResponseEntity<String> uploadFileToFolder(@RequestParam("file") MultipartFile file,
                                                      @RequestParam(value = "folderName", required = false) String folderName) {
@@ -130,13 +131,28 @@ public class FileController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("File or folder not found");
         }
 
-        if(fileService.deleteRecursively(targetFileFolder)) {
+        if(fileService.deleted(targetFileFolder)) {
             return ResponseEntity.ok("Succesfully deleted");
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting file or folder");
         }
 
     }
+
+    // Move file to paper bin
+    @PostMapping("/paper-bin")
+    public ResponseEntity<String> paperbin(@RequestParam("name") String name) {
+        Path source = Paths.get(baseDir + name);
+        Path target = Paths.get(binDir + name);
+
+        try {
+            Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+            return ResponseEntity.ok("File moved to paper bin successfully: " + name);
+        } catch (IOException e) {
+            return ResponseEntity.status(500).body("Error moving file: " + e.getMessage());
+        }
+    }
+
 
     // Download file
     @GetMapping("/download")

@@ -6,11 +6,11 @@ import lombok.Data;
 public class fileModel {
     private String name;
     private String size;
-    private String modificationDate;
+    private String creationDate;
 
-    public fileModel(String name, String size, String modificationDate) {
+    public fileModel(String name, String size, String creationDate) {
         this.name = name;
-        this.modificationDate = modificationDate;
+        this.creationDate = creationDate;
         this.size = size;
     }
 }

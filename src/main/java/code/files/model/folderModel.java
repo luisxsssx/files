@@ -5,10 +5,10 @@ import lombok.Data;
 @Data
 public class folderModel {
     private String name;
-    private String modificationDate;
+    private String creationDate;
 
-    public folderModel(String name, String modificationDate) {
+    public folderModel(String name, String creationDate) {
         this.name = name;
-        this.modificationDate = modificationDate;
+        this.creationDate = creationDate;
     }
 }

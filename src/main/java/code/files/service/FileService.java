@@ -2,6 +2,10 @@ package code.files.service;
 
 import code.files.model.fileModel;
 import code.files.model.folderModel;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -99,6 +103,25 @@ public class FileService {
     private String conversion(long bytes) {
         double kilobytes = bytes / 1024.0;
         return df.format(kilobytes);
+    }
+
+    // Get metadata form files
+    public ResponseEntity<byte[]> getFileResponse(String filePath) {
+        try {
+            File file = new File(filePath);
+            if (!file.exists()) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            byte[] media = Files.readAllBytes(file.toPath());
+            HttpHeaders headers = new HttpHeaders();
+            headers.setCacheControl("no-cache");
+            headers.setContentType(MediaType.valueOf(Files.probeContentType(file.toPath())));
+
+            return new ResponseEntity<>(media, headers, HttpStatus.OK);
+        } catch (IOException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 }

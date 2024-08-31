@@ -1,5 +1,6 @@
 package code.files;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.ResourceLoader;
 import code.files.service.FileService;
@@ -35,9 +36,9 @@ public class FileController {
         this.resourceLoader = resourceLoader;
     }
 
-    ///////////////////////////////////
-    //      Folders Section          //
-    ///////////////////////////////////
+      /////////////////////////////////////
+     ///      Folders Section          ///
+    /////////////////////////////////////
 
     // Create folders
     @PostMapping("/folder/create")
@@ -64,9 +65,9 @@ public class FileController {
         return ResponseEntity.ok(content);
     }
 
-    ///////////////////////////////////
-    //      Files Section          //
-    ///////////////////////////////////
+      //////////////////////////////////
+     //      Files Section          ///
+    //////////////////////////////////
 
     // Upload file to a specific folder
     @PostMapping("/upload")
@@ -153,7 +154,6 @@ public class FileController {
         }
     }
 
-
     // Download file
     @GetMapping("/download")
     public ResponseEntity<InputStreamResource> downloadFile(
@@ -178,4 +178,22 @@ public class FileController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, headerValue)
                 .body(resource);
     }
+
+    // View files contents
+    @GetMapping("/content/{folderName}")
+    public ResponseEntity<byte[]> getImageWithFolder(@PathVariable(value = "folderName", required = false) String folderName,
+                                                     @RequestParam(value = "filename", required = true) String filename) {
+        String filePath = Paths.get(baseDir, folderName != null ? folderName : "", filename).toString();
+
+        return fileService.getFileResponse(filePath);
+    }
+
+    @GetMapping("/content")
+    public ResponseEntity<byte[]> getImageWithoutFolder(@RequestParam("filename") String filename) {
+        String filePath = Paths.get(baseDir, filename).toString();
+
+        return fileService.getFileResponse(filePath);
+    }
+
+
 }

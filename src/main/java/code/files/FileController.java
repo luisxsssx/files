@@ -21,6 +21,8 @@ public class FileController {
     private final FileService fileService;
 
     private String baseDir = "/home/luisxsssx/Documents/Code/documents/root/";
+    private String binDir = "/home/luisxsssx/Documents/Code/documents/bin/";
+
     private final ResourceLoader resourceLoader;
 
     public FileController(FileService fileService, ResourceLoader resourceLoader) {
@@ -81,6 +83,14 @@ public class FileController {
 
         String filePath = Paths.get(folderName != null ? folderName : "", filename).toString();
         return fileService.moveToPaperBin(filePath);
+    }
+
+    @GetMapping("/paper-bin")
+    public ResponseEntity<List<Object>> paperBin(
+            @RequestParam(value = "path") String path,
+            @RequestParam(value = "type", required = false) String type) {
+        List<Object> content = fileService.getFolderContent(binDir, path, type);
+        return ResponseEntity.ok(content);
     }
 
     // Download file

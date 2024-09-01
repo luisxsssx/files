@@ -10,10 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 @Controller
@@ -24,7 +21,6 @@ public class FileController {
     private final FileService fileService;
 
     private String baseDir = "/home/luisxsssx/Documents/Code/documents/root/";
-    private String binDir = "/home/luisxsssx/Documents/Code/documents/bin/";
     private final ResourceLoader resourceLoader;
 
     public FileController(FileService fileService, ResourceLoader resourceLoader) {
@@ -53,7 +49,7 @@ public class FileController {
     }
 
       //////////////////////////////////
-     //      Files Section          ///
+     ///      Files Section         ///
     //////////////////////////////////
 
     // Upload file to a specific folder
@@ -78,17 +74,13 @@ public class FileController {
     }
 
     // Move file to paper bin
-    @PostMapping("/paper-bin")
-    public ResponseEntity<String> paperbin(@RequestParam("name") String name) {
-        Path source = Paths.get(baseDir + name);
-        Path target = Paths.get(binDir + name);
+    @PostMapping("/paper-bin/{folderName}")
+    public ResponseEntity<String> moveFileToPaperBin(
+            @PathVariable(value = "folderName", required = false) String folderName,
+            @RequestParam("filename") String filename) {
 
-        try {
-            Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
-            return ResponseEntity.ok("File moved to paper bin successfully: " + name);
-        } catch (IOException e) {
-            return ResponseEntity.status(500).body("Error moving file: " + e.getMessage());
-        }
+        String filePath = Paths.get(folderName != null ? folderName : "", filename).toString();
+        return fileService.moveToPaperBin(filePath);
     }
 
     // Download file

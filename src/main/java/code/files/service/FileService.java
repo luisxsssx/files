@@ -12,7 +12,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -26,6 +28,7 @@ public class FileService {
     private static final DecimalFormat df = new DecimalFormat("#.##");
 
     private String baseDir = "/home/luisxsssx/Documents/Code/documents/root/";
+    private String binDir = "/home/luisxsssx/Documents/Code/documents/bin/";
 
     // Helper method to delete files and directories recursively
     public boolean deleted(File fileOrFolder) {
@@ -39,22 +42,6 @@ public class FileService {
                 }
             }
         }
-        return fileOrFolder.delete();
-    }
-
-    // Move file to trash
-    public boolean moveToTrash(File fileOrFolder) {
-        if(fileOrFolder.isDirectory()) {
-            File[] contents = fileOrFolder.listFiles();
-            if (contents != null) {
-                for(File file : contents) {
-                    if(!deleted(file)) {
-                        return false;
-                    }
-                }
-            }
-        }
-
         return fileOrFolder.delete();
     }
 
@@ -217,6 +204,19 @@ public class FileService {
             return ResponseEntity.ok("Successfully created folder");
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating folder");
+        }
+    }
+
+    public ResponseEntity<String> moveToPaperBin(String filePath) {
+        Path source = Paths.get(baseDir, filePath);
+        String filename = source.getFileName().toString();
+        Path target = Paths.get(binDir, filename);
+
+        try {
+            Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+            return ResponseEntity.ok(filename + " moved to paper bin successfully");
+        } catch (IOException e) {
+            return ResponseEntity.status(500).body("Error moving file: " + e.getMessage());
         }
     }
 }

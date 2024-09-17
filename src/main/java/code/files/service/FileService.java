@@ -17,9 +17,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -168,42 +166,60 @@ public class FileService {
         }
     }
 
-    public ResponseEntity<String> uploadFile(MultipartFile file, String folderName) {
+    public ResponseEntity<Map<String, String>> uploadFile(MultipartFile file, String folderName) {
         String folderPath;
-        if(folderName == null || folderName.isEmpty()) {
+        if (folderName == null || folderName.isEmpty()) {
             folderPath = baseDir;
         } else {
             folderPath = Paths.get(baseDir, folderName).toString();
             File folder = new File(folderPath);
-            if(!folder.exists()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Folder does not exist");
+            if (!folder.exists()) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Folder does not exist");
+
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(errorResponse);
             }
         }
 
         String filePath = Paths.get(folderPath, file.getOriginalFilename()).toString();
         try {
-            // Save the file to the file system
             FileOutputStream fout = new FileOutputStream(filePath);
             fout.write(file.getBytes());
             fout.close();
 
-            return ResponseEntity.ok("File uploaded succesfully to:" + folderName);
+            Map<String, String> successResponse = new HashMap<>();
+            successResponse.put("message", "File uploaded successfully");
+
+            return ResponseEntity.ok(successResponse);
         } catch (IOException e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in uploading file: " + e.getMessage());
+
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to upload file");
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(errorResponse);
         }
     }
 
-    public ResponseEntity<String> createFolder(String folderName, String parentFolder){
+    public ResponseEntity<Map<String, String>> createFolder(String folderName, String parentFolder){
         String folderPath = (parentFolder == null || parentFolder.isEmpty())
                 ? Paths.get(baseDir, folderName).toString()
                 : Paths.get(baseDir, parentFolder, folderName).toString();
 
         File folder = new File(folderPath);
         if (folder.mkdir()) {
-            return ResponseEntity.ok("Successfully created folder");
+
+            Map<String, String> successResponse = new HashMap<>();
+            successResponse.put("message", "Successfully created folder");
+            return ResponseEntity.ok(successResponse);
         } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating folder");
+
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", "Error creating the folder");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(errorResponse);
         }
     }
 

@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.*;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/home")
@@ -36,7 +37,7 @@ public class FileController {
 
     // Create folders
     @PostMapping("/folder/create")
-    public ResponseEntity<String> createAnotherFolder(@RequestParam("folderName") String folderName,
+    public ResponseEntity<Map<String, String>> createFolder(@RequestParam("folderName") String folderName,
                                                       @RequestParam(value = "parentFolder", required = false) String parentFolder) {
        return fileService.createFolder(folderName, parentFolder);
     }
@@ -55,11 +56,12 @@ public class FileController {
     //////////////////////////////////
 
     // Upload file to a specific folder
-    @PostMapping("/upload")
-    public ResponseEntity<String> uploadFileToFolder(@RequestParam("file") MultipartFile file,
-                                                     @RequestParam(value = "folderName", required = false) String folderName) {
-        return fileService.uploadFile(file, folderName);
-    }
+     @PostMapping("/upload")
+     public ResponseEntity<Map<String, String>> uploadFileToFolder(@RequestParam("file") MultipartFile file,
+                                                                   @RequestParam(value = "folderName", required = false) String folderName) {
+         return fileService.uploadFile(file, folderName);
+     }
+
 
     // Rename a file or folder
     @PostMapping("/rename")

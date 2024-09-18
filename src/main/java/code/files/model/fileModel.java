@@ -13,4 +13,5 @@ public class fileModel {
         this.creationDate = creationDate;
         this.size = size;
     }
+
 }

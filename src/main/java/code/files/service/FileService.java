@@ -2,6 +2,7 @@ package code.files.service;
 
 import code.files.model.fileModel;
 import code.files.model.folderModel;
+import org.springframework.boot.autoconfigure.task.TaskExecutionProperties;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -131,18 +132,24 @@ public class FileService {
                 .body(resource);
     }
 
-    public ResponseEntity<String> delete(String path) {
+    public ResponseEntity<Map<String, String>> delete(String path) {
         String targetPath = Paths.get(baseDir, path).toString();
         File targetFileFolder = new File(targetPath);
 
         if(!targetFileFolder.exists()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("File or folder not found");
+            Map<String, String> notFoundResponse = new HashMap<>();
+            notFoundResponse.put("message", "File not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(notFoundResponse);
         }
 
         if(deleted(targetFileFolder)) {
-            return ResponseEntity.ok("Successfully deleted");
+            Map<String, String> successResponse = new HashMap<>();
+            successResponse.put("message", "Successfully deleted");
+            return ResponseEntity.ok(successResponse);
         } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting file or folder");
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", "Error deleting file or folder");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 
@@ -233,6 +240,40 @@ public class FileService {
             return ResponseEntity.ok(filename + " moved to paper bin successfully");
         } catch (IOException e) {
             return ResponseEntity.status(500).body("Error moving file: " + e.getMessage());
+        }
+    }
+
+    public List<Object> allContent(String type) {
+        List<Object> filesList = new ArrayList<>();
+        File baseDirectory = new File(baseDir);
+        File[] initialFiles = baseDirectory.listFiles();
+
+        if (initialFiles != null) {
+            List<File> filteredFiles = filterFilesAndFolders(initialFiles, type);
+            return filteredFiles.isEmpty() ?
+                    List.of() :
+                    filteredFiles.stream()
+                            .map(file -> {
+
+
+                                if (file.isDirectory()) {
+                                    long folderLastModified = file.lastModified();
+                                    Date folderMod = new Date(folderLastModified);
+                                    SimpleDateFormat SDF = new SimpleDateFormat("dd-MMM-yyyy");
+                                    String formatDate = SDF.format(folderMod);
+                                    return new folderModel(file.getName(), formatDate);
+                                } else {
+                                    long filelastModified= file.lastModified();
+                                    Date fileMod = new Date(filelastModified);
+                                    SimpleDateFormat sdff = new SimpleDateFormat("dd-MMM-yyyy");
+                                    String formattedDated = sdff.format(fileMod);
+                                    String size = file.isDirectory() ? "" : conversion(file.length()) + " KB";
+                                    return new fileModel(file.getName(), size, formattedDated);
+                                }
+                            })
+                            .collect(Collectors.toList());
+        } else {
+            return List.of();
         }
     }
 }

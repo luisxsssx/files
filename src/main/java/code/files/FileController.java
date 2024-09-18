@@ -51,6 +51,12 @@ public class FileController {
         return ResponseEntity.ok(content);
     }
 
+    @GetMapping("/all-content")
+    public ResponseEntity<List<Object>> allContent(@RequestParam(value = "type") String type) {
+        List<Object> content = fileService.allContent(type);
+        return ResponseEntity.ok(content);
+    }
+
       //////////////////////////////////
      ///      Files Section         ///
     //////////////////////////////////
@@ -73,7 +79,7 @@ public class FileController {
 
     // Delete file/folder
     @DeleteMapping("/delete")
-    public ResponseEntity<String> delete(@RequestParam("path") String path){
+    public ResponseEntity<Map<String, String>> delete(@RequestParam("path") String path){
        return fileService.delete(path);
     }
 

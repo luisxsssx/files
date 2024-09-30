@@ -2,6 +2,7 @@ package code.files.service;
 
 import code.files.model.fileModel;
 import code.files.model.folderModel;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.task.TaskExecutionProperties;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -26,8 +27,11 @@ public class FileService {
 
     private static final DecimalFormat df = new DecimalFormat("#.##");
 
-    private String baseDir = "/home/luisxsssx/Documents/Code/documents/root/";
-    private String binDir = "/home/luisxsssx/Documents/Code/documents/bin/";
+    @Value("${file.storage.bin}")
+    private String binDir;
+
+    @Value("${file.storage.location}")
+    private String baseDir;
 
     // Helper method to delete files and directories recursively
     public boolean deleted(File fileOrFolder) {

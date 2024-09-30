@@ -1,5 +1,6 @@
 package code.files;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.ResourceLoader;
 import code.files.service.FileService;
@@ -21,8 +22,11 @@ public class FileController {
     @Autowired
     private final FileService fileService;
 
-    private String baseDir = "/home/luisxsssx/Documents/Code/documents/root/";
-    private String binDir = "/home/luisxsssx/Documents/Code/documents/bin/";
+    @Value("${file.storage.bin}")
+    private String binDir;
+
+    @Value("${file.storage.location}")
+    private String baseDir;
 
     private final ResourceLoader resourceLoader;
 

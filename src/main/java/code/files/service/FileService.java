@@ -47,23 +47,6 @@ public class FileService {
         return fileOrFolder.delete();
     }
 
-
-    public List<File> filterFilesAndFolders(File[] files, String type) {
-        if (type == null || type.isEmpty()) {
-            return Arrays.asList(files);
-        }
-        return Arrays.stream(files)
-                .filter(file -> "file".equalsIgnoreCase(type) && file.isFile() ||
-                        "folder".equalsIgnoreCase(type) && file.isDirectory())
-                .collect(Collectors.toList());
-    }
-
-    // Convert file size to megabytes
-    private String conversion(long bytes) {
-        double kilobytes = bytes / 1024.0;
-        return df.format(kilobytes);
-    }
-
     // Get metadata form files
     public ResponseEntity<byte[]> getFileResponse(String filePath) {
         try {
@@ -191,40 +174,6 @@ public class FileService {
             return ResponseEntity.ok(filename + " moved to paper bin successfully");
         } catch (IOException e) {
             return ResponseEntity.status(500).body("Error moving file: " + e.getMessage());
-        }
-    }
-
-    public List<Object> allContent(String type) {
-        List<Object> filesList = new ArrayList<>();
-        File baseDirectory = new File(baseDir);
-        File[] initialFiles = baseDirectory.listFiles();
-
-        if (initialFiles != null) {
-            List<File> filteredFiles = filterFilesAndFolders(initialFiles, type);
-            return filteredFiles.isEmpty() ?
-                    List.of() :
-                    filteredFiles.stream()
-                            .map(file -> {
-
-
-                                if (file.isDirectory()) {
-                                    long folderLastModified = file.lastModified();
-                                    Date folderMod = new Date(folderLastModified);
-                                    SimpleDateFormat SDF = new SimpleDateFormat("dd-MMM-yyyy");
-                                    String formatDate = SDF.format(folderMod);
-                                    return new folderModel(file.getName(), formatDate);
-                                } else {
-                                    long filelastModified= file.lastModified();
-                                    Date fileMod = new Date(filelastModified);
-                                    SimpleDateFormat sdff = new SimpleDateFormat("dd-MMM-yyyy");
-                                    String formattedDated = sdff.format(fileMod);
-                                    String size = file.isDirectory() ? "" : conversion(file.length()) + " KB";
-                                    return new fileModel(file.getName(), size, formattedDated);
-                                }
-                            })
-                            .collect(Collectors.toList());
-        } else {
-            return List.of();
         }
     }
 }

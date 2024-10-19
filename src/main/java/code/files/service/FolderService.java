@@ -92,4 +92,40 @@ public class FolderService {
         double kilobytes = bytes / 1024.0;
         return df.format(kilobytes);
     }
+
+    public List<Object> allContent(String type) {
+        List<Object> filesList = new ArrayList<>();
+        File baseDirectory = new File(baseDir);
+        File[] initialFiles = baseDirectory.listFiles();
+
+        if (initialFiles != null) {
+            List<File> filteredFiles = filterFilesAndFolders(initialFiles, type);
+            return filteredFiles.isEmpty() ?
+                    List.of() :
+                    filteredFiles.stream()
+                            .map(file -> {
+
+
+                                if (file.isDirectory()) {
+                                    long folderLastModified = file.lastModified();
+                                    Date folderMod = new Date(folderLastModified);
+                                    SimpleDateFormat SDF = new SimpleDateFormat("dd-MMM-yyyy");
+                                    String formatDate = SDF.format(folderMod);
+                                    return new folderModel(file.getName(), formatDate);
+                                } else {
+                                    long filelastModified= file.lastModified();
+                                    Date fileMod = new Date(filelastModified);
+                                    SimpleDateFormat sdff = new SimpleDateFormat("dd-MMM-yyyy");
+                                    String formattedDated = sdff.format(fileMod);
+                                    String size = file.isDirectory() ? "" : conversion(file.length()) + " KB";
+                                    return new fileModel(file.getName(), size, formattedDated);
+                                }
+                            })
+                            .collect(Collectors.toList());
+        } else {
+            return List.of();
+        }
+    }
+
+
 }

@@ -62,7 +62,7 @@ public class FileController {
 
     @GetMapping("/all-content")
     public ResponseEntity<List<Object>> allContent(@RequestParam(value = "type") String type) {
-        List<Object> content = fileService.allContent(type);
+        List<Object> content = folderService.allContent(type);
         return ResponseEntity.ok(content);
     }
 

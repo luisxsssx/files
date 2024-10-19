@@ -3,7 +3,6 @@ package code.files.service;
 import code.files.model.fileModel;
 import code.files.model.folderModel;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.task.TaskExecutionProperties;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -48,38 +47,6 @@ public class FileService {
         return fileOrFolder.delete();
     }
 
-    public List<Object> getFolderContent(String baseDir, String path, String type) {
-        String fullPath = path != null ? Paths.get(baseDir, path).toString() : baseDir;
-        File folder = new File(fullPath);
-
-        File[] folderContent = folder.listFiles();
-        if (folderContent != null) {
-            List<File> filteredFiles = filterFilesAndFolders(folderContent, type);
-            return filteredFiles.isEmpty() ?
-                    List.of() :
-                    filteredFiles.stream()
-                            .map(file -> {
-
-                                if(file.isDirectory()) {
-                                    long lastModified= file.lastModified();
-                                    Date mod = new Date(lastModified);
-                                    SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy");
-                                    String formattedDate = sdf.format(mod);
-                                    return new folderModel(file.getName(), formattedDate);
-                                } else {
-                                    long lastModified= file.lastModified();
-                                    Date mod = new Date(lastModified);
-                                    SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy");
-                                    String formattedDate = sdf.format(mod);
-                                    String size = file.isDirectory() ? "" : conversion(file.length()) + " KB";
-                                    return new fileModel(file.getName(), size, formattedDate);
-                                }
-                            })
-                            .collect(Collectors.toList());
-        } else {
-            return List.of();
-        }
-    }
 
     public List<File> filterFilesAndFolders(File[] files, String type) {
         if (type == null || type.isEmpty()) {
@@ -209,26 +176,6 @@ public class FileService {
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "Failed to upload file");
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(errorResponse);
-        }
-    }
-
-    public ResponseEntity<Map<String, String>> createFolder(String folderName, String parentFolder){
-        String folderPath = (parentFolder == null || parentFolder.isEmpty())
-                ? Paths.get(baseDir, folderName).toString()
-                : Paths.get(baseDir, parentFolder, folderName).toString();
-
-        File folder = new File(folderPath);
-        if (folder.mkdir()) {
-
-            Map<String, String> successResponse = new HashMap<>();
-            successResponse.put("message", "Successfully created folder");
-            return ResponseEntity.ok(successResponse);
-        } else {
-
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("message", "Error creating the folder");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(errorResponse);
         }

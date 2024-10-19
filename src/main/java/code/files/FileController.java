@@ -1,5 +1,6 @@
 package code.files;
 
+import code.files.service.FolderService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.ResourceLoader;
@@ -22,6 +23,9 @@ public class FileController {
     @Autowired
     private final FileService fileService;
 
+    @Autowired
+    private final FolderService folderService;
+
     @Value("${file.storage.bin}")
     private String binDir;
 
@@ -30,8 +34,9 @@ public class FileController {
 
     private final ResourceLoader resourceLoader;
 
-    public FileController(FileService fileService, ResourceLoader resourceLoader) {
+    public FileController(FileService fileService, FolderService folderService, ResourceLoader resourceLoader) {
         this.fileService = fileService;
+        this.folderService = folderService;
         this.resourceLoader = resourceLoader;
     }
 
@@ -43,7 +48,7 @@ public class FileController {
     @PostMapping("/folder/create")
     public ResponseEntity<Map<String, String>> createFolder(@RequestParam("folderName") String folderName,
                                                       @RequestParam(value = "parentFolder", required = false) String parentFolder) {
-       return fileService.createFolder(folderName, parentFolder);
+       return folderService.createFolder(folderName, parentFolder);
     }
 
     // Enter Folder
@@ -51,7 +56,7 @@ public class FileController {
     public ResponseEntity<List<Object>> folderContent(
             @RequestParam(value = "path") String path,
             @RequestParam(value = "type", required = false) String type) {
-        List<Object> content = fileService.getFolderContent(baseDir, path, type);
+        List<Object> content = folderService.getFolderContent(baseDir, path, type);
         return ResponseEntity.ok(content);
     }
 
@@ -101,7 +106,7 @@ public class FileController {
     public ResponseEntity<List<Object>> paperBin(
             @RequestParam(value = "path") String path,
             @RequestParam(value = "type", required = false) String type) {
-        List<Object> content = fileService.getFolderContent(binDir, path, type);
+        List<Object> content = folderService.getFolderContent(binDir, path, type);
         return ResponseEntity.ok(content);
     }
 

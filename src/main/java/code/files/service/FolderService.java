@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -74,7 +75,11 @@ public class FolderService {
                             })
                             .collect(Collectors.toList());
         } else {
-            return List.of();
+            try {
+                throw new FileNotFoundException("Parameter with name " + path + " is not found");
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

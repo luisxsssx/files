@@ -16,7 +16,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
-@Controller
+@RestController
 @RequestMapping("/home")
 public class FileController {
 

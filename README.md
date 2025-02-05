@@ -6,87 +6,105 @@ In this project, we aim to create a clone of Google Drive for personal use. This
 ### Get content
 #### Get all content
 ```http
-  GET /home/folder?path=
+  GET /home/all-content?type=
 ```
 | Parameter | Type     | Description                 |
 |:----------| :------- |:----------------------------|
-| `?path=`  | `string` | **Required**. For later use |
+| `type`    | `string` | **Required**. The type of content to retrieve |
 
-#### Get only folders
+#### Get folder content
 ```http
-  GET /home/folder?path=&type=folder
-``````
-| Parameter | Type     | Description                                                  |
-|:----------| :------- |:-------------------------------------------------------------|
-| `type`    | `string` | **Required**. Only if you want to specify the type of content|
-#### Get only files
-```http
-  GET /home/folder?path=&type=files
+  GET /home/folder?path=&type=
 ```
-| Parameter | Type     | Description                                                   |
-|:----------| :------- |:--------------------------------------------------------------|
-| `type`    | `string` | **Required**. Only if you want to specify the type of content |
+| Parameter | Type     | Description                 |
+|:----------| :------- |:----------------------------|
+| `path`    | `string` | **Required**. Path to the folder |
+| `type`    | `string` | **Optional**. The type of content to retrieve |
 
+### Manage Paper Bin
+#### Get content in paper bin
+```http
+  GET /home/paper-bin?path=&type=
+```
+| Parameter | Type     | Description                 |
+|:----------| :------- |:----------------------------|
+| `path`    | `string` | **Required**. Path in the bin |
+| `type`    | `string` | **Optional**. The type of content to retrieve |
+
+#### Move file to paper bin
+```http
+  POST /home/paper-bin/{folderName}
+```
+| Parameter    | Type     | Description                                           |
+|:------------| :------- |:------------------------------------------------------|
+| `folderName` | `string` | **Optional**. The folder containing the file         |
+| `filename`   | `string` | **Required**. Name of the file to move to paper bin  |
 
 ### Delete files or folders
-#### Delete a file o folder in the root directory
+#### Delete a file or folder
 ```http
   DELETE /home/delete?path=
-``````
-#### Delete a file o folder in a subdirectory:
-```http
-  DELETE /home/delete?path=subdirectory/file.txt
-``````
-| Parameter | Type     | Description                                                                                                              |
-|:----------| :------- |:-------------------------------------------------------------------------------------------------------------------------|
-| `path`    | `string` | **Required**. To specify where the element to be deleted is located (if it is left empty it is because it is at the root)|
+```
+| Parameter | Type     | Description                 |
+|:----------| :------- |:----------------------------|
+| `path`    | `string` | **Required**. Path of the file or folder to delete |
 
 ### Upload files
 ```http
-  POST /home/uploadFile
-``````
+  POST /home/upload
+```
 #### Form Data
 | Parameter    | Type            | Description                                                                                                     |
 |:-------------|:----------------|:----------------------------------------------------------------------------------------------------------------|
 | `file`       | `MultipartFile` | **Required**. The file to upload                                                                                |
 | `folderName` | `string`        | **Optional**. The folder to upload the file to. If omitted or empty, the file is uploaded to the root directory |
 
- ### Rename
+### Rename
 #### Rename file or folder
 ```http
   POST /home/rename
-``````
+```
 #### Form Data
 | Parameter     | Type     | Description                                                                                    |
 |:--------------|:---------|:-----------------------------------------------------------------------------------------------|
 | `currentName` | `string` | **Required**. The current name of the file or folder                                           |
-| `newName`     | `string` | **Required**. The new name for the line or folder                                              |
-| `folderName`  | `string` | **Optional**. The folder containing the file or folder, If omitted, the root directory is used |
+| `newName`     | `string` | **Required**. The new name for the file or folder                                              |
+| `folderName`  | `string` | **Optional**. The folder containing the file or folder. If omitted, the root directory is used |
 
 ### Download File
-#### Download files to the root directory:
+#### Download a file
 ```http
-  GET /home/download?path=/file.txt
-``````
-#### Download files in a subdirectory:
-```http
-  GET /home/download?path=subfolder/insidefolder/book.pdf
-``````
+  GET /home/download?path=&type=
+```
 | Parameter | Type     | Description                                                 |
 |:----------|:---------|:------------------------------------------------------------|
 | `path`    | `string` | **Required**. The path to the file to download              |
-| `type`    | `string` | **Optional**.  The type of file, if needed for content-type |
+| `type`    | `string` | **Optional**. The type of file, if needed for content-type |
 
 ### Create folder
-#### Create folder in the root directory:
+#### Create folder
 ```http
   POST /home/folder/create
-``````
-#### Create folder in a subdirectory:
-```http
-  POST /home/folder/create
-``````
+```
 | Parameter      | Type     | Description                                                 |
-|:---------------|:---------|:------------------------------------------------------------|
-| `folderName`   | `string` | **Required**. The path to the file to download              |
-| `parentFolder` | `string` | **Optional**. The parent folder in which to create the new folder. If omitted, the folder is created in the root directory |
+|:--------------|:---------|:------------------------------------------------------------|
+| `folderName`   | `string` | **Required**. The name of the folder to create             |
+| `parentFolder` | `string` | **Optional**. The parent folder. If omitted, it is created in the root directory |
+
+### View file contents
+#### View a file in a specific folder
+```http
+  GET /home/content/{folderName}?filename=
+```
+| Parameter    | Type     | Description                                |
+|:------------|:---------|:-------------------------------------------|
+| `folderName` | `string` | **Optional**. The folder containing the file |
+| `filename`   | `string` | **Required**. Name of the file to view     |
+
+#### View a file in the root directory
+```http
+  GET /home/content?filename=
+```
+| Parameter  | Type     | Description                                |
+|:----------|:---------|:-------------------------------------------|
+| `filename` | `string` | **Required**. Name of the file to view     |
